@@ -1,4 +1,4 @@
-# This program is designed to finds new options for starter pokemon types. Excludes water,fire,grass from options.
+# This program is designed to find new options for starter pokemon types. Excludes water,fire,grass from options.
 # Pokemon are categorized based on their number of immunities and their self relation.
 # Trios of pokemon that obey two sets of triangular relationships are put into a specific list
 # Pokemon are then displayed based on trio relationship -> number of immunities -> self relation
@@ -144,7 +144,7 @@ Water.nve_list.extend([Grass, Water, Dragon])
 # List containing all non-traditional starter types
 # type_list_trad = [Water, Fire, Grass]
 type_list = [
-    Bug, Dark, Dragon, Electric, Fairy, Fighting, Flying,
+    Water, Fire, Grass, Bug, Dark, Dragon, Electric, Fairy, Fighting, Flying,
     Ghost, Ground, Ice, Normal, Psychic, Poison, Rock, Steel
 ]
 
