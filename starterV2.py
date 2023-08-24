@@ -1,6 +1,5 @@
 '''
-This script is designed to find new potential options for starter pokemon trios. 
-Water, fire, and grass are exluded as options.
+Finds new potential options for starter pokemon trios. (Water/Fire/Grass Excluded)
 Pokemon are categorized based on their number of immunities and their self relation.
 Trios of pokemon that obey two sets of triangular relationships are grouped together.
 Pokemon are then displayed based on trio relationship -> number of immunities -> self relation.
@@ -8,18 +7,36 @@ With
   Non-strict neutral attacks and no self-relation: Over 5000 trios
   Strict neutral attacks and self-relation: Over 2000 trios
   Semi-strict NEU attack, Strict NVE attack, exlude no self-relation: ~1500 trios
-  Semi-strict NEU attack, Strict NVE attack, exlude no self-relation, only give-take immunity balanced: ~40trios
+  Semi-strict NEU attack, Strict NVE attack, exlude no self-relation, only give-take immunity balanced: ~10trios
+
+Things that can be altered for more options:
+    NEU strictness
+    NVE strictness
+    No self-relation required
+    Closeness in immunity balance
+    Immunity balance between attackers
+
+Currently: 
+    NEU semi-strict
+    NVE strict
+    Self-relation required
+    Immunity give-has must be equal among all pokemon in trio
+    Immunity must be balanced between attackers
 '''
+
+
 from termcolor import cprint 
 
 class Pokemon:
+
+    # param: [Type] Can be a single Type or 2 unique Types.
     def __init__(self, *typing):
         self.typing = typing
 
     def __repr__(self):
         return "/".join(str(typ) for typ in self.typing)
 
-    # param: [Pokemon]
+    # param: [Pokemon] Attacking Pokemon
     # return [Array<Int>] All effectivenesses of attacker's types on defender. 
     def attack(self, def_pokemon):
         effectiveness = []
@@ -37,8 +54,8 @@ class Type:
     def __repr__(self):
         return str(self.name)
 
-    # param: [Pokemon]
-    # return [Int] Single effectiveness of attacker's type on defender. 
+    # param: [Pokemon] Defending Pokemon
+    # return [Int] Single effectiveness of attacker's type on defender.  
     def attack(self, def_pokemon):
         damage_multiplier = 1
         for typ in def_pokemon.typing:
@@ -58,10 +75,18 @@ class Trio:
 
     def __repr__(self):
         return str([self.p1, self.p2, self.p3])
-    
-    # TODO: implement actual __iter__
-    def iter(self):
-            return [self.p1, self.p2, self.p3]
+
+
+    def __iter__(self):
+        self.value = 0
+        return iter([self.p1, self.p2, self.p3])
+
+    def __next__(self):
+        if self.value < 3:
+            value = self.value
+            self.value += 1
+            return __iter__[value]
+        raise StopIteration
     
     # return: [Array<Array<Int>>]
     def trio_attack1(self):
@@ -81,8 +106,10 @@ class Trio:
     def trio_attack_full(self):
         return self.trio_attack1() + self.trio_attack2()
 
-    # param: [Array<Array<Int>>]
-    # return [Int] Int representing cycle in which the trio can deal SE damange
+    # return [Int] Integer representing cycle in which the trio can deal SE damage
+    #   0: both directions
+    #   1: cycle 1
+    #   2: cycle 2
     def super_effective(self):
         if all(map(lambda attack: any(eff > 1 for eff in attack), self.trio_attack_full())):
             return 0
@@ -91,14 +118,15 @@ class Trio:
         elif all(map(lambda attack: any(eff > 1 for eff in attack), self.trio_attack2())):
             return 2
 
+
     '''
-    Neutrality is a bit harder to enforce. How strictly do we enforce that the attacker
-    deals NEU damage? We select strict to select only optimized trios. If no optimized trio
-    is found, we may lessen strictness.
+    Neutrality is a bit harder to quantify. How strictly do we enforce that the attacker
+    deals NEU damage?
         Strict: Attackers are only capable of dealing NEU damage
-        Semi-Strict: Attackers can deal neutral damage, but cannot deal SE damage
-        Non-strict: Attackers can deal neutral damage, but may also be able to deal SE or NVE damage. 
+        Semi-Strict: Attackers deal neutral damage, but may also deal NVE damage
+        Non-strict: Attackers deal neutral damage, but may also deal SE or NVE damage. 
     '''
+    # STRICT NEU:
     # param: [Array<Array<Int>>]
     # return [Int] Int representing cycle in which the trio can deal only NEU damage
     # def neutral_effective_strict(self):
@@ -109,8 +137,9 @@ class Trio:
     #     elif all(map(lambda attack: all(eff == 1 for eff in attack), self.trio_attack2())):
     #         return 2
 
-    # # param: [Array<Array<Int>>]
-    # # return [Int] Int representing cycle in which the trio can deal NEU damage and not SE damage
+    # SEMI_STRICT NEU:
+    # param: [Array<Array<Int>>]
+    # return [Int] Int representing cycle in which the trio can deal NEU damage and not SE damage
     def neutral_effective_semi_strict(self):
         if all(map(lambda attack: all(eff == 1 for eff in attack) and not(any(eff > 1 for eff in attack)), self.trio_attack_full())):
             return 0
@@ -119,8 +148,9 @@ class Trio:
         elif all(map(lambda attack: all(eff == 1 for eff in attack) and not(any(eff > 1 for eff in attack)), self.trio_attack2())):
             return 2
 
-    # # param: [Array<Array<Int>>]
-    # # return [Int] Int representing cycle in which the trio can deal NEU damage
+    # NON_STRICT NEU:
+    # param: [Array<Array<Int>>]
+    # return [Int] Int representing cycle in which the trio can deal NEU damage
     # def neutral_effective(self):
     #     if all(map(lambda attack: any(eff == 1 for eff in attack), self.trio_attack_full())):
     #         return 0
@@ -129,12 +159,15 @@ class Trio:
     #     elif all(map(lambda attack: any(eff == 1 for eff in attack), self.trio_attack2())):
     #         return 2
 
+
     '''
     As with neutrality, how strict do we want to enforce the NVE-cycle? 
         Strict: Attackers are only capable of dealing NVE damage.
-        Semi-Strict: Attackers can deal NVE, but cannot deal SE damage.
+        Semi-Strict: Attackers can deal NVE, but may also deal NEU.
         Non-strict: Attackers can deal NVE, buy may also be able to deal SE or NEU damage.
     ''' 
+    
+    # STRICT NVE:
     # param: [Array<Array<Int>>]
     # return [Int] Int representing cycle in which the trio can deal only NEU damage
     def not_very_effective_strict(self):
@@ -145,6 +178,7 @@ class Trio:
         elif all(map(lambda attack: (all(eff < 1 for eff in attack)), self.trio_attack2())):
             return 2
     
+    # SEMI_STRICT NVE:
     # param: [Array<Array<Int>>]
     # return [Int] Int representing cycle in which the trio can deal NVE damage and not SE damage
     # def not_very_effective_semi_strict(self):
@@ -155,6 +189,7 @@ class Trio:
     #     elif all(map(lambda attack: (any(eff < 1 for eff in attack) and not(any(eff > 1 for eff in attack))), self.trio_attack2())):
     #         return 2
 
+    # NON_STRICT NVE:
     # param: [Array<Array<Int>>]
     # return [Int] Int representing cycle in which the trio can deal NEU damage
     # def not_very_effective(self):
@@ -185,15 +220,16 @@ class Trio:
     # return [Array<Integer>] How many immunities each pokemon in the trio gives
     def imm_given_trio(self):
         give_imm = []
-        for i in range(3):
-            give_imm.append(self.imm_given(self.iter()[i]))
+        for pokemon in self:
+            give_imm.append(self.imm_given(pokemon))
         return give_imm
     
     '''
-    No starter pokemon has ever had a type which another type was immune to.
+    Note: No starter pokemon has ever had a type which another type was immune to.
     Though Bulbsaur's poison typing means that it gives 1 immunity to steel,
     steel type was introduced in GenII, after Bulbasaur was a starter. 
     '''
+
     # return [Boolean] Do all pokemon in trio give same number of immunities?
     def same_imm_given(self):
         given = self.imm_given_trio()
@@ -219,9 +255,9 @@ class Trio:
             return False
     
     '''
-    Almost every starter had 0 immunities and gave 0 immunities. It would be unecessary to 
+    Almost every starter had 0 immunities and gave 0 immunities. It's unnecessary to 
     impose those limitations here. It's enough to check that the mathematical difference between 
-    immunities given and had is the same among the pokemon. 
+    immunities given and had is the same among each pokemon in the trio. 
     (Rowlet is the only starter to have an immunity).
     '''
 
@@ -229,8 +265,7 @@ class Trio:
     #   given and possessed immunities? 
     def give_has_balance(self):
         balance = []
-        for i in range(3):
-            pokemon = self.iter()[i]
+        for pokemon in self:
             give = self.imm_given(pokemon)
             has = 0
             for typ in all_types:
@@ -241,8 +276,8 @@ class Trio:
     
     # return [Boolean] Do all or none of the pokemon have an immunity to their attacker?
     def immune_balanced(self):
-        imm_in_trio1 = [0 in self.iter()[x].attack(self.iter()[(x+1) % 3]) for x in range(3)]
-        imm_in_trio2 = [0 in self.iter()[(x+1) % 3].attack(self.iter()[x]) for x in range(3)]
+        imm_in_trio1 = [0 in attack for attack in self.trio_attack1()]
+        imm_in_trio2 = [0 in attack for attack in self.trio_attack2()]
         if all(imm_in_trio1) or all(imm_in_trio2):
             return True
         elif any(imm_in_trio1) or any(imm_in_trio2):
@@ -250,15 +285,17 @@ class Trio:
         else:
             return True    
 
-    # return [Boolean] Are all the pokemon in this list?
-    def trio_obey(self, obey_list):
-        return all(pokemon in obey_list for pokemon in self.iter())
+    # param [List] List to check adherence to
+    # return [Boolean] Are all the pokemon within the trio in this list?
+    def obey(self, obey_list):
+        return all(pokemon in obey_list for pokemon in self)
 
-    # return [Boolean] Do all the pokemon appear together in any of these lists?
-    def trio_obey_any(self, obey_lists):
-        return any(self.trio_obey(obey_lists[i]) for i in range(len(obey_lists)))
+    # param [List<List>] Lists of lists to check adherence to
+    # return [Boolean] Do all the pokemon in the trio appear together in any of these lists?
+    def obey_any(self, obey_lists):
+        return any(self.obey(obey_list) for obey_list in obey_lists)
 
-    def display_trio(self, current_list, color = 'cyan', highlight = None, text_options = None):
+    def display(self, current_list, color = 'cyan', highlight = None, text_options = None):
         cprint(f"{current_list.index(self) +1}: {str(self)[1:-1]}",color)
 
 def close(a, b):
@@ -461,16 +498,16 @@ self_relationships_lists = fill_self_relation()
  
 # Add trio to the respective list if it obeys the relationships. 
 def append_trio(trio, imm_list, self_relation, self_relationships_lists, immunity_lists, current_list, no_self_relation, mixed_immunity):
-    if trio.trio_obey(imm_list) or (trio in mixed_immunity and imm_list == mixed_immunity):
-        if trio.trio_obey(self_relation):
-            if trio.immune_balanced() and trio.give_has_balance():
+    if trio.obey(imm_list) or (trio in mixed_immunity and imm_list == mixed_immunity):
+        if trio.immune_balanced() and trio.give_has_balance():
+            if trio.obey(self_relation):
                 current_list.append(trio)
         
-        elif not trio.trio_obey_any(self_relationships_lists):
-            if trio not in no_self_relation:
-                no_self_relation.append(trio)
+            elif not trio.obey_any(self_relationships_lists):
+                if trio not in no_self_relation:
+                    no_self_relation.append(trio)
     
-    elif not trio.trio_obey_any(immunity_lists):
+    elif not trio.obey_any(immunity_lists):
         if trio not in mixed_immunity:
             mixed_immunity.append(trio)
 
@@ -479,6 +516,7 @@ def append_trio(trio, imm_list, self_relation, self_relationships_lists, immunit
 def display(trio_relationships):
     for trio_relation in trio_relationships:
         display_trio_relation(trio_relation)
+        any_trios = False
         mixed_immunity = []
 
         for imm_list in immunity_lists + [mixed_immunity]:
@@ -504,6 +542,7 @@ def display(trio_relationships):
                 #     current_list = no_self_relation  
 
                 if current_list:
+                    any_trios = True
                     if not printed:
                         display_immunity(imm_list)
                         printed = True
@@ -511,8 +550,10 @@ def display(trio_relationships):
                     display_self_relation(self_relation)
 
                     for trio in current_list:
-                        trio.display_trio(current_list)
-
+                        trio.display(current_list)
+        
+        if not any_trios:
+            print("None")
 
 def cprint_trio_relation(relation):
     cprint(relation, "red", None, ["underline"])
@@ -556,8 +597,8 @@ def display_self_relation(self_relation):
         cprint_trio_self_rel("      Self Neutral:")
     elif self_relation is self_imm:
         cprint_trio_self_rel("      Self Immune:")
-    # else: 
-    #     cprint_trio_self_rel("      No Self Relation:")
+    else: 
+        cprint_trio_self_rel("      No Self Relation:")
 
 
 display(trio_relationships)
