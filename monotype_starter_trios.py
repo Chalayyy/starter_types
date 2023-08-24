@@ -1,5 +1,5 @@
 '''
-Only examines mono-type options, but with looser requirements
+Only examines mono-type options, but with no self-relation requirement
 '''
 
 from termcolor import cprint 
