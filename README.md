@@ -11,3 +11,30 @@ The requirements are:
 5. Pokemon should share the same self-relationship. Just like Water, Grass, and Fire all resist themselves, all pokemon within the trio should share some self-relationship, whether it’s super effective, neutral, or not very effective.
 
 Pokemon are displayed based on the requirements they obey.
+
+Data Printout: 
+
+Super Effective - Super Effective
+None
+Not Very Effective - Not Very Effective
+None
+Neutral - Neutral
+   No Immunities
+      Self Not Very Effective:
+1: Electric, Fighting/Ice, Poison/Rock
+   Mixed Immunities
+      Self Super Effective:
+1: Dragon/Fairy, Ghost/Psychic, Ground/Rock
+      Self Not Very Effective:
+1: Electric, Fighting/Ice, Normal/Poison
+2: Ice, Electric/Fairy, Ghost/Psychic
+3: Electric/Fairy, Ghost/Psychic, Ice/Rock
+Super Effective - Not Very Effective
+None
+Super Effective - Neutral
+   Mixed Immunities
+      Self Not Very Effective:
+1: Ice, Bug/Ground, Dragon/Steel
+2: Ice, Bug/Ground, Normal/Rock
+Not Very Effective - Neutral
+None
