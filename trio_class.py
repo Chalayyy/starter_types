@@ -1,10 +1,11 @@
 from list_generators import all_types
 from termcolor import cprint 
 
-neu_strictness = "semi-strict"
+neu_strictness = "trict"
 nve_strictness = "strict"
-check_immune_balanced = True
-self_relation_required = True
+ignore_self_relation = False
+ignore_immune_balanced = False
+ignore_give_has_balanced = False
 mono_type = False
 
 
@@ -155,16 +156,19 @@ class Trio:
     
     # return [Boolean] Do all or none of the pokemon have an immunity to their attacker?
     def immune_balanced(self):
-        if check_immune_balanced == True:
-            imm_in_trio1 = [0 in attack for attack in self.trio_attack1()]
-            imm_in_trio2 = [0 in attack for attack in self.trio_attack2()]
-            if all(imm_in_trio1) or all(imm_in_trio2):
-                return True
-            elif any(imm_in_trio1) or any(imm_in_trio2):
-                return False
-            else:
-                return True
+        imm_in_trio1 = [0 in attack for attack in self.trio_attack1()]
+        imm_in_trio2 = [0 in attack for attack in self.trio_attack2()]
+        if all(imm_in_trio1) or all(imm_in_trio2):
+            return True
+        elif any(imm_in_trio1) or any(imm_in_trio2):
+            return False
         else:
+            return True
+
+    def immune_triangle(self):
+        imm_in_trio1 = [0 in attack for attack in self.trio_attack1()]
+        imm_in_trio2 = [0 in attack for attack in self.trio_attack2()]
+        if all(imm_in_trio1) or all(imm_in_trio2):
             return True
 
     # param [List] List to check adherence to
@@ -177,5 +181,12 @@ class Trio:
     def obey_any(self, obey_lists):
         return any(self.obey(obey_list) for obey_list in obey_lists)
 
-    def display(self, current_list, color = 'cyan', highlight = None, text_options = None):
-        cprint(f"{current_list.index(self) +1}: {str(self)[1:-1]}",color)
+    def display(self, current_list, color, text_options):
+        cprint(f"{current_list.index(self) +1}: {str(self)[1:-1]}", color, attrs = text_options)
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@ Pokemon categorized based on number of immunities and their self relation.
 Trios of pokemon that obey two sets of triangular relationships are grouped together.
 Pokemon are then displayed based on trio relationship -> number of immunities -> self relation.
 With:
-  Least Strict Restrictions: ~1800 trios
+  Least Strict Restrictions: ~32,000trios
   Semi-Strict Restrictions: ~50 trios
   Most Strict Restrictions: 7 trios
   Least Strict Monotype: 2trios
@@ -18,13 +18,14 @@ from relationship_populator import *
 # Add trio to the respective list if it obeys the relationships. 
 def append_trio(trio, imm_list, self_relation, self_relationships_lists, immunity_lists, current_list, no_self_relation, mixed_immunity):
     if trio.obey(imm_list) or (trio in mixed_immunity and imm_list == mixed_immunity):
-        if trio.immune_balanced() and trio.give_has_balance():
-            if trio.obey(self_relation):
-                current_list.append(trio)
+        if (trio.immune_balanced() or ignore_immune_balanced):
+            if (trio.give_has_balance() or ignore_give_has_balanced):
+                if trio.obey(self_relation):
+                    current_list.append(trio)
         
-            elif not trio.obey_any(self_relationships_lists):
-                if trio not in no_self_relation:
-                    no_self_relation.append(trio)
+                elif not trio.obey_any(self_relationships_lists):
+                    if ignore_self_relation and trio not in no_self_relation:
+                        no_self_relation.append(trio)
     
     elif not trio.obey_any(immunity_lists):
         if trio not in mixed_immunity:
@@ -58,7 +59,7 @@ def display(trio_relationships):
                             no_self_relation, 
                             mixed_immunity
                         ) 
-                elif not self_relation_required:
+                else:
                     current_list = no_self_relation  
 
                 if current_list:
@@ -70,7 +71,15 @@ def display(trio_relationships):
                     display_self_relation(self_relation)
 
                     for trio in current_list:
-                        trio.display(current_list)
+                        attrs = []
+                        color = "cyan"
+                        if not trio.immune_balanced() and ignore_immune_balanced:
+                            attrs.append("dark")
+                        if trio.give_has_balance() and ignore_give_has_balanced:
+                            color = "blue"
+                        if trio.immune_triangle() or trio.obey(self_imm):
+                            attrs.append("blink")
+                        trio.display(current_list, color = color, text_options = attrs)
                         count +=1
         
         if not any_trios:
@@ -81,10 +90,10 @@ def cprint_trio_relation(relation):
     cprint(relation, "red", None, ["underline"])
 
 def cprint_trio_imm(imm):
-    cprint(imm, "yellow", None, ["underline"])
+    cprint(imm, "light_blue", None, ["underline"])
 
-def cprint_trio_self_rel(self_rel, color = "blue"):
-    cprint(self_rel, color, None, ["underline"])
+def cprint_trio_self_rel(self_rel):
+    cprint(self_rel, "yellow", None, ["underline"])
 
 def display_trio_relation(trio_relation):
     if trio_relation is se_se:

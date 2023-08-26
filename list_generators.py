@@ -95,13 +95,13 @@ def types_generator():
 all_types = types_generator()
 
 def pokemon_generator():
-    monotype_pokemon_list = [Pokemon(x) for x in all_types] # 16 pokemon
+    monotype_pokemon_list = [Pokemon(x) for x in all_types] # 15 pokemon
     dualtype_pokemon_list = [Pokemon(x, y) for x in all_types for y in all_types[all_types.index(x)+1:]] #120 pokemon
-    all_pokemon_list = monotype_pokemon_list + dualtype_pokemon_list # 136 pokemon
+    all_pokemon_list = monotype_pokemon_list + dualtype_pokemon_list # 135 pokemon
     return all_pokemon_list
 pokemon_list = pokemon_generator()
 
 def monotype_pokemon_generator():
-    return [Pokemon(x) for x in all_types] # 16 pokemon
+    return [Pokemon(x) for x in all_types] # 15 pokemon
 monotype_pokemon_list = monotype_pokemon_generator()
 
