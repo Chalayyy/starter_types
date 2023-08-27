@@ -1,7 +1,7 @@
 from list_generators import all_types
 from termcolor import cprint 
 
-neu_strictness = "trict"
+neu_strictness = "strict"
 nve_strictness = "strict"
 ignore_self_relation = False
 ignore_immune_balanced = False
